@@ -1,6 +1,6 @@
 <?php
 
 session_start();
-unset($_SESSION['admin']);
+unset($_SESSION['admin_log']);
 $_SESSION['success'] = "ออกจากระบบสำเร็จ";
-header("Location: ../login.php");
+header("Location: ../../orderit/login.php");

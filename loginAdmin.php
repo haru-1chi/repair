@@ -16,7 +16,7 @@ if (isset($_POST['login'])) {
         if ($stmt->rowCount() > 0) {
             if ($username == $user['username']) {
                 if (password_verify($password, $user['password'])) {
-                    $_SESSION["admin"] = $user["username"];
+                    $_SESSION['admin_log'] = $user["username"];
                     header("location: admin.php");
                 }
             } else {

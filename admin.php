@@ -1,14 +1,15 @@
 <?php
 session_start();
 require_once 'config/db.php';
+require_once 'navbar.php';
 
-if (!isset($_SESSION['admin'])) {
+if (!isset($_SESSION['admin_log'])) {
     $_SESSION['warning'] = "กรุณาเข้าสู่ระบบ";
     header("location: login.php");
 }
 
-if (isset($_SESSION['admin'])) {
-    $admin = $_SESSION['admin'];
+if (isset($_SESSION['admin_log'])) {
+    $admin = $_SESSION['admin_log'];
     $sql = "SELECT * FROM admin WHERE username = :username";
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(":username", $admin);
@@ -52,38 +53,103 @@ if (isset($_GET['device'])) {
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        #borrow tbody tr td {
+            background-color: #f2f7ff;
+            color: #000;
+        }
+
+        #borrow2 tbody tr td {
+            background-color: #f2f7ff;
+            color: #000;
+        }
+
+        #admin tbody tr td {
+            background-color: #f2f7ff;
+            color: #000;
+        }
+
+        #device tbody tr td {
+            background-color: #f2f7ff;
+            color: #000;
+        }
+
+        .navbar {
+            background-color: #365486;
+            /* สีเขียว */
+        }
+
+        .navbar-brand {
+            font-weight: 900;
+            color: #fff !important;
+            /* สีข้อความของ Navbar Brand */
+        }
+
+        .navbar-toggler-icon {
+            background-color: #fff;
+            /* สีไอคอน Toggle */
+        }
+
+        .navbar-nav .nav-link {
+            color: #fff !important;
+            transition: border 0.3s;
+            /* เพิ่ม transition เพื่อทำให้การเปลี่ยนสีเป็นจุดประสงค์ */
+        }
+
+        .navbar-nav .nav-link:hover {
+            border-bottom: 2px solid #ffc107;
+            /* สีกรอบเมื่อ Hover */
+            color: #ffc107 !important;
+        }
+
+        .btn.dropdown-toggle {
+            border-radius: 0 !important;
+            /* Remove rounded corners */
+            border-color: transparent !important;
+            /* Ensure no border by default */
+        }
+
+        .btn.dropdown-toggle:focus,
+        .btn.dropdown-toggle:active,
+        .show>.btn.dropdown-toggle {
+            border: none;
+            border-bottom: 2px solid #ffc107 !important;
+            /* Change border color */
+            color: #ffc107 !important;
+            /* Change text color */
+        }
+
+        .btn.dropdown-toggle:not(:focus):not(:active) {
+            border-color: transparent !important;
+            /* Remove border when losing focus */
+            box-shadow: none !important;
+            /* Remove Bootstrap's default focus glow */
+        }
+    </style>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg" style="background-color: #365486; width: 100%;
-  height: 100px;">
+    <?php navbar(); ?>
+    <!-- <nav class="navbar p-3 navbar-expand-lg bg-green text-center">
         <div class="container">
-            <a class="navbar-brand" style="color: white;" href="#"><?= $data['username'] ?></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <a class="navbar-brand" href="../orderit/dashboard.php">ระบบบริหารงานซ่อม</a>
+            <div class="collapse navbar-collapse align-items-center" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a type="button" style="color: white; cursor: pointer;" class="nav-link" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-                            เพิ่มเจ้าหน้าที่
-                        </a>
+                        <a class="nav-link" href="borrow.php">ยืม</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" style="color: white; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#staticBackdrop2">
-                            เพิ่มอุปกรณ์
-                        </a>
+                        <a class="nav-link" href="admin.php">สำหรับเจ้าหน้าที่</a>
                     </li>
-
+                    <li class="nav-item ms-5">
+                        <a class="nav-link" href="system/logout.php" type="submit">ออกจากระบบ</a>
+                    </li>
                 </ul>
-                <form class="d-flex" role="search">
-                    <a href="system/logout.php" class="btn btn-danger" type="submit">ออกจากระบบ</a>
-                </form>
             </div>
         </div>
-    </nav>
-    <div class="container mt-5 mb-5">
+    </nav> -->
 
+    <div class="container mt-4 mb-5">
 
         <?php if (isset($_SESSION['error'])) { ?>
             <div class="alert alert-danger" role="alert">
@@ -113,9 +179,6 @@ if (isset($_GET['device'])) {
         <?php } ?>
         <!-- Button trigger modal -->
 
-
-
-
         <!-- Modal -->
         <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -126,11 +189,11 @@ if (isset($_GET['device'])) {
                     <div class="modal-body">
                         <form action="system/insert.php" method="POST">
                             <div class="mb-3">
-                                <h5 for="exampleInputEmail1" class="text-center">Username</h5>
+                                <h5 for="exampleInputEmail1">Username</h5>
                                 <input required type="text" class="form-control" name="username">
                             </div>
                             <div class="mb-3">
-                                <h5 for="exampleInputPassword1" class="text-center">Password</h5>
+                                <h5 for="exampleInputPassword1">Password</h5>
                                 <input required type="password" class="form-control" name="password">
                             </div>
 
@@ -155,13 +218,13 @@ if (isset($_GET['device'])) {
                     <div class="modal-body">
                         <form action="system/insert.php" method="POST">
                             <div class="mb-3">
-                                <h5 for="exampleInputEmail1" class="text-center">ชื่ออุปกรณ์</h5>
+                                <h5 for="exampleInputEmail1">ชื่ออุปกรณ์</h5>
                                 <input required type="text" class="form-control" name="device_name">
-                                <h5 for="exampleInputEmail1" class="text-center">หมายเลขครุภัณฑ์</h5>
+                                <h5 for="exampleInputEmail1" class="mt-2">หมายเลขครุภัณฑ์</h5>
                                 <input required type="text" class="form-control" name="number_device">
-                                <h5 for="exampleInputEmail1" class="text-center">อุปกรณ์เพิ่มเติม</h5>
+                                <h5 for="exampleInputEmail1" class="mt-2">อุปกรณ์เพิ่มเติม</h5>
                                 <input required type="text" class="form-control" name="device_enc">
-                                <h5 for="exampleInputEmail1" class="text-center">สถานะอุปกรณ์</h5>
+                                <h5 for="exampleInputEmail1" class="mt-2">สถานะอุปกรณ์</h5>
                                 <select class="form-select" name="device_status" id="">
                                     <option required disabled value="" selected>สถานะ</option>
                                     <option value="1">ยืม</option>
@@ -181,7 +244,9 @@ if (isset($_GET['device'])) {
             </div>
         </div>
 
-        <hr>
+        <div class="d-flex justify-content-end gap-4">
+            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#staticBackdrop2">+ เพิ่มอุปกรณ์</button>
+        </div>
         <div class="row">
             <h1 class="text-center">จำนวนผู้ยืม</h1>
             <div class="col-sm-12">
@@ -193,12 +258,68 @@ if (isset($_GET['device'])) {
                             <th class="text-center" scope="col">หน่วยงาน</th>
                             <th class="text-center" scope="col">อุปกรณ์ที่ยืม</th>
                             <th class="text-center" scope="col">วันที่ยืม - วันส่งคืน</th>
+                            <th class="text-center" scope="col">จำนวนวันยืม</th>
+                            <th class="text-center" scope="col">เลยกำหนด</th>
                             <th class="text-center" scope="col">สถานะ</th>
                             <th class="text-center" scope="col">ตรวจสอบ</th>
                         </tr>
                     </thead>
-                    <tbody class="text-center">
+                    <tbody class="text-center align-middle">
                         <?php
+
+                        function formatThaiDate($date)
+                        {
+                            $thaiMonths = [
+                                "01" => "ม.ค.",
+                                "02" => "ก.พ.",
+                                "03" => "มี.ค.",
+                                "04" => "เม.ย.",
+                                "05" => "พ.ค.",
+                                "06" => "มิ.ย.",
+                                "07" => "ก.ค.",
+                                "08" => "ส.ค.",
+                                "09" => "ก.ย.",
+                                "10" => "ต.ค.",
+                                "11" => "พ.ย.",
+                                "12" => "ธ.ค."
+                            ];
+
+                            $dateObj = DateTime::createFromFormat('Y-m-d', $date);
+                            if (!$dateObj) return '-'; // Handle invalid dates
+
+                            $year = $dateObj->format('Y') + 543; // Convert to Thai Buddhist year
+                            $month = $thaiMonths[$dateObj->format('m')]; // Get Thai month name
+                            $day = $dateObj->format('d'); // Get day
+
+                            return "$day $month $year";
+                        }
+
+                        function calculateBorrowDays($borrowDate, $returnDate)
+                        {
+                            $borrowDateObj = DateTime::createFromFormat('Y-m-d', $borrowDate);
+                            $returnDateObj = DateTime::createFromFormat('Y-m-d', $returnDate);
+
+                            if (!$borrowDateObj || !$returnDateObj) return '-'; // Handle invalid dates
+
+                            $diff = $borrowDateObj->diff($returnDateObj);
+                            return $diff->days . ' วัน';
+                        }
+
+                        function calculateOverdueDays($returnDate)
+                        {
+                            $returnDateObj = DateTime::createFromFormat('Y-m-d', $returnDate);
+                            $currentDateObj = new DateTime();
+
+                            if (!$returnDateObj) return '-'; // Handle invalid dates
+
+                            if ($currentDateObj > $returnDateObj) {
+                                $diff = $returnDateObj->diff($currentDateObj);
+                                return $diff->days . ' วัน';
+                            }
+
+                            return '-';
+                        }
+
                         $sql = "SELECT eq.*,dv.*
                 FROM equipmentborrow AS eq
                 INNER JOIN device as dv ON dv.id = eq.device_id
@@ -208,6 +329,15 @@ if (isset($_GET['device'])) {
                         $stmt->execute();
                         $user = $stmt->fetchAll();
                         foreach ($user as $d) {
+                            $deviceListStmt = $conn->prepare("SELECT id, device_name FROM device");
+                            $deviceListStmt->execute();
+                            $allDevices = $deviceListStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+                            $device_ids = explode(',', $d['device_id']);
+                            $device_names = array_map(function ($id) use ($allDevices) {
+                                return "$id " . ($allDevices[trim($id)] ?? "Unknown");
+                            }, $device_ids);
+                            $device_names_str = implode("\n", $device_names);
+
                             if ($d['status'] == 1) {
                                 $status = "อนุมัติแล้ว";
                             } else if ($d['status'] == 2) {
@@ -217,20 +347,40 @@ if (isset($_GET['device'])) {
                             }
                         ?>
                             <tr>
-                                <th scope="row"><?= $d['borrower_name'] ?></th>
+                                <td scope="row"><?= $d['borrower_name'] ?></td>
                                 <td><?= $d['department_id'] ?></td>
-                                <td><?= $d['device_name'] ?></td>
-                                <td><?= $d['borrowing_date'] . ' - ' . $d['return_date'] ?></td>
+                                <td><?= nl2br($device_names_str) ?></td>
+                                <td><?= formatThaiDate($d['borrowing_date']) . ' - ' . formatThaiDate($d['return_date']) ?></td>
+                                <td><?= calculateBorrowDays($d['borrowing_date'], $d['return_date']) ?></td>
+                                <td>
+                                    <p style="margin: 0; color: <?= (calculateOverdueDays($d['return_date']) !== '-') ? 'red' : 'black' ?>;">
+                                        <?= calculateOverdueDays($d['return_date']) ?>
+                                    </p>
+                                </td>
+
                                 <?php
                                 if ($d['status'] == 1) { ?>
-                                    <td style="background-color: #ffc107; text-align: center; color: white; width: 8rem; padding: 16px;"><?= $status ?><br>( <?= $d['username'] ?> )</td>
+                                    <td>
+                                        <div style="background-color: #ffc107; text-align: center; color: white; padding: 0px; border-radius: 5px;">
+                                            <?= $status ?><br>( <?= $d['username'] ?> )
+                                        </div>
+                                    </td>
                                 <?php } // ตรงนี้
                                 else if ($d['status'] == 2) { ?>
-                                    <td style="background-color: green; text-align: center; color: white; width: auto; padding: 16px;"><?= $status ?><br>( <?= $d['username'] ?> )</td>
+                                    <td>
+                                        <div style="background-color: green; text-align: center; color: white; padding: 0px; border-radius: 5px;">
+                                            <?= $status ?><br>( <?= $d['username'] ?> )
+                                        </div>
+                                    </td>
                                 <?php  } else { ?>
-                                    <td style="background-color: red; text-align: center; color: white; width: auto; padding: 16px;"><?= $status ?></td>
+                                    <td>
+                                        <div style="background-color: #ef4444; text-align: center; color: white; padding: 12px; border-radius: 5px;">
+                                            <?= $status ?>
+                                        </div>
+                                    </td>
                                 <?php }
                                 ?>
+
                                 <td>
                                     <a class="btn btn-warning" href="details.php?id=<?= $d['id_borrow'] ?>">ตรวจสอบ</a>
                                 </td>
@@ -252,11 +402,13 @@ if (isset($_GET['device'])) {
                             <th class="text-center" scope="col">หน่วยงาน</th>
                             <th class="text-center" scope="col">อุปกรณ์ที่ยืม</th>
                             <th class="text-center" scope="col">วันที่ยืม - วันส่งคืน</th>
+                            <th class="text-center" scope="col">จำนวนวันยืม</th>
+                            <th class="text-center" scope="col">เลยกำหนด</th>
                             <th class="text-center" scope="col">สถานะ</th>
                             <th class="text-center" scope="col">ตรวจสอบ</th>
                         </tr>
                     </thead>
-                    <tbody class="text-center">
+                    <tbody class="text-center align-middle">
                         <?php
                         $currentDate = date('Y-m-d');
                         $sql = "SELECT eq.*,dv.*
@@ -283,11 +435,22 @@ if (isset($_GET['device'])) {
                             }
                         ?>
                             <tr>
-                                <th scope="row"><?= $d['borrower_name'] ?></th>
+                                <td scope="row"><?= $d['borrower_name'] ?></td>
                                 <td><?= $d['department_id'] ?></td>
                                 <td><?= $d['device_name'] ?></td>
-                                <td><?= $d['borrowing_date'] . ' - ' . $d['return_date'] ?></td>
-                                <td style="<?= $statusColor ?> text-align: center; color: white; width: auto; padding: 16px;"><?= $status ?><br>( <?= $d['username'] ?> )</td>
+                                <td><?= formatThaiDate($d['borrowing_date']) . ' - ' . formatThaiDate($d['return_date']) ?></td>
+                                <td><?= calculateBorrowDays($d['borrowing_date'], $d['return_date']) ?></td>
+                                <td>
+                                    <p style="margin: 0; color: <?= (calculateOverdueDays($d['return_date']) !== '-') ? 'red' : 'black' ?>;">
+                                        <?= calculateOverdueDays($d['return_date']) ?>
+                                    </p>
+                                </td>
+
+                                <td>
+                                    <div style="<?= $statusColor ?> text-align: center; color: white; padding: 0px; border-radius: 5px;">
+                                        <?= $status ?><br>( <?= $d['username'] ?> )
+                                    </div>
+                                </td>
                                 <td>
                                     <a class="btn btn-warning" href="details.php?id=<?= $d['id_borrow'] ?>">ตรวจสอบ</a>
                                 </td>
@@ -303,36 +466,8 @@ if (isset($_GET['device'])) {
 
         <hr>
         <div class="row mb-5">
-            <div class="col-sm-6 mt-5">
-                <h5 class="text-center">เจ้าหน้าที่</h5>
-                <table id="admin" class="table table-hover table-primary mt-5">
-                    <thead>
-                        <tr>
-                            <th class="text-center" scope="col">ชื่อ</th>
-                            <th class="text-center" scope="col">ลบ</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-center">
-                        <?php
-                        $sql = "SELECT * FROM admin";
-                        $stmt = $conn->prepare($sql);
-                        $stmt->execute();
-                        $user = $stmt->fetchAll();
-                        foreach ($user as $d) {
-                            if ($d['username'] != $admin) { ?>
-                                <tr>
-                                    <th scope="row"><?= $d['username'] ?></th>
-                                    <td><a onclick="confirm('ต้องการลบข้อมูลใช่หรือไม่')" class="btn btn-danger" href="?username=<?= $d['username'] ?>">ลบ</a></td>
-                                </tr>
-                            <?php    }
-                            ?>
-                        <?php }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-            <div class="col-sm-6 mt-5">
-                <h5 class="text-center">อุปกรณ์</h5>
+            <div class="col-sm-12 mt-5">
+                <h1 class="text-center">อุปกรณ์</h1>
                 <table id="device" class="table table-hover table-primary mt-5">
                     <thead>
                         <tr>
@@ -344,37 +479,48 @@ if (isset($_GET['device'])) {
                             <th class="text-center" scope="col">ลบ</th>
                         </tr>
                     </thead>
-                    <tbody class="text-center">
+                    <tbody class="text-center align-middle">
                         <?php
                         $sql = "SELECT * FROM device";
                         $stmt = $conn->prepare($sql);
                         $stmt->execute();
                         $user = $stmt->fetchAll();
-                        $status_device = "";
+
                         foreach ($user as $d) {
+                            $status_device = "";
+                            $statusColor = "";
 
                             if ($d['device_status'] == 1) {
                                 $status_device = "ยืม";
+                                $statusColor = "background-color: #FACC15;"; // Yellow
                             } else if ($d['device_status'] == 2) {
                                 $status_device = "ว่าง";
+                                $statusColor = "background-color: #22C55E;"; // Green
                             } else if ($d['device_status'] == 3) {
                                 $status_device = "ชำรุด";
+                                $statusColor = "background-color: #EF4444;"; // Red
                             } else if ($d['device_status'] == 4) {
                                 $status_device = "ซ่อมแซม";
+                                $statusColor = "background-color: #FB923C;"; // Orange
                             } else if ($d['device_status'] == 5) {
                                 $status_device = "งดยืม";
+                                $statusColor = "background-color: gray;"; // Gray
                             }
                         ?>
                             <tr>
-                                <th scope="row"><?= $d['device_name'] ?></th>
-                                <th scope="row"><?= $d['number_device'] ?></th>
-                                <th scope="row"><?= $d['device_enc'] ?></th>
-                                <th scope="row"><?= $status_device ?></th>
-                                <td> <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editDevice<?= $d['id'] ?>">
+                                <td scope="row"><?= $d['device_name'] ?></td>
+                                <td scope="row"><?= $d['number_device'] ?></td>
+                                <td scope="row"><?= $d['device_enc'] ?></td>
+                                <td>
+                                    <div style="<?= $statusColor ?> text-align: center; color: white; padding: 0px; border-radius: 5px;">
+                                        <?= $status_device ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editDevice<?= $d['id'] ?>">
                                         แก้ไข
-                                    </button></td>
-
-
+                                    </button>
+                                </td>
                                 <div class="modal fade" id="editDevice<?= $d['id'] ?>" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
@@ -384,14 +530,14 @@ if (isset($_GET['device'])) {
                                             <div class="modal-body">
                                                 <form action="system/update.php" method="POST">
                                                     <div class="mb-3">
-                                                        <h5 for="exampleInputEmail1" class="text-center">ชื่ออุปกรณ์</h5>
+                                                        <h5 for="exampleInputEmail1">ชื่ออุปกรณ์</h5>
                                                         <input required type="text" value="<?= $d['device_name'] ?>" class="form-control" name="device_name">
-                                                        <h5 for="exampleInputEmail1" class="text-center">หมายเลขครุภัณฑ์</h5>
+                                                        <h5 for="exampleInputEmail1" class="mt-2">หมายเลขครุภัณฑ์</h5>
                                                         <input required type="text" value="<?= $d['number_device'] ?>" class="form-control" name="number_device">
-                                                        <h5 for="exampleInputEmail1" class="text-center">อุปกรณ์เพิ่มเติม</h5>
+                                                        <h5 for="exampleInputEmail1" class="mt-2">อุปกรณ์เพิ่มเติม</h5>
                                                         <input required type="text" value="<?= $d['device_enc'] ?>" class="form-control" name="device_enc">
 
-                                                        <h5 for="exampleInputEmail1" class="text-center">สถานะอุปกรณ์</h5>
+                                                        <h5 for="exampleInputEmail1" class="mt-2">สถานะอุปกรณ์</h5>
 
                                                         <select class="form-select" name="device_status" id="">
                                                             <option value="<?= $d['device_status'] ?>" selected><?= $status_device ?></option>
