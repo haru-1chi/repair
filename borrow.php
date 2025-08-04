@@ -253,10 +253,6 @@ if (isset($_POST['submit'])) {
             </form>
         </div>
     </div>
-    <footer class="mt-5 footer mt-auto py-3" style="background: #fff;">
-        <marquee style="font-weight: bold; font-size: 1rem"><span style="font-size: 1rem" class="text-muted text-center">Design website by นายอภิชน ประสาทศรี , พุฒิพงศ์ ใหญ่แก้ว &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Coding โดย นายอานุภาพ ศรเทียน &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ควบคุมโดย นนท์ บรรณวัฒน์ นักวิชาการคอมพิวเตอร์ ปฏิบัติการ</span>
-        </marquee>
-    </footer>
     <script src="bootstrap/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>

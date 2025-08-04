@@ -18,25 +18,25 @@ if (isset($_SESSION['admin_log'])) {
     $data = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 if (isset($_POST['status'])) {
-    $borrowed_time = $_POST['borrowed_time'];
     $return_date = $_POST['return_date'];
     $device_ids = explode(',', $_POST['device_id']); // Now an array: ['52', '35', '11']
     $admin = $_SESSION['admin_log'];
     $status = 2;
     $device_status = 2;
-
+    date_default_timezone_set('Asia/Bangkok');
+    $return_time = date('H:i:s');
     // Update the borrow record
     $sql = "UPDATE equipmentborrow
-            SET borrowed_time = :borrowed_time,
-                return_date = :return_date,
+            SET return_date = :return_date,
                 status = :status,
-                username = :username
+                username = :username,
+                return_time = :return_time
             WHERE id_borrow = :id";
     $stmt = $conn->prepare($sql);
-    $stmt->bindParam(":borrowed_time", $borrowed_time);
     $stmt->bindParam(":return_date", $return_date);
     $stmt->bindParam(":status", $status);
     $stmt->bindParam(":username", $admin);
+    $stmt->bindParam(":return_time", $return_time);
     $stmt->bindParam(":id", $id);
 
     // Execute the update on equipmentborrow

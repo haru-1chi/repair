@@ -192,16 +192,7 @@ require_once 'navbar.php';
 
         </div>
     </div>
-
-    <footer class="mt-5 footer mt-auto py-3" style="background: #fff;">
-
-        <marquee style="font-weight: bold; font-size: 1rem"><span style="font-size: 1rem" class="text-muted text-center">Design website by นายอภิชน ประสาทศรี , พุฒิพงศ์ ใหญ่แก้ว &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Coding โดย นายอานุภาพ ศรเทียน &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ควบคุมโดย นนท์ บรรณวัฒน์ นักวิชาการคอมพิวเตอร์ ปฏิบัติการ</span>
-        </marquee>
-
-    </footer>
-
     <script src="bootstrap/bootstrap/js/bootstrap.bundle.min.js"></script>
-
 </body>
 
 </html>

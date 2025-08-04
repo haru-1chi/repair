@@ -64,6 +64,11 @@ if (isset($_GET['device'])) {
             color: #000;
         }
 
+        #return tbody tr td {
+            background-color: #f2f7ff;
+            color: #000;
+        }
+
         #admin tbody tr td {
             background-color: #f2f7ff;
             color: #000;
@@ -124,6 +129,43 @@ if (isset($_GET['device'])) {
             /* Remove border when losing focus */
             box-shadow: none !important;
             /* Remove Bootstrap's default focus glow */
+        }
+
+        .card-hover {
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+            /* 👈 Add this */
+        }
+
+        .bg-info.card-hover:hover {
+            background-color: rgb(0, 163, 196) !important;
+            /* darker blue */
+        }
+
+        .bg-danger.card-hover:hover {
+            background-color: rgb(190, 22, 39) !important;
+        }
+
+        .bg-success.card-hover:hover {
+            background-color: rgb(7, 100, 56) !important;
+        }
+
+        .bg-secondary.card-hover:hover {
+            background-color: rgb(71, 82, 92) !important;
+        }
+
+        .section {
+            position: absolute;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            width: 100%;
+        }
+
+        .section.active {
+            position: static;
+            visibility: visible;
+            opacity: 1;
         }
     </style>
 </head>
@@ -226,9 +268,8 @@ if (isset($_GET['device'])) {
                                 <input required type="text" class="form-control" name="device_enc">
                                 <h5 for="exampleInputEmail1" class="mt-2">สถานะอุปกรณ์</h5>
                                 <select class="form-select" name="device_status" id="">
-                                    <option required disabled value="" selected>สถานะ</option>
                                     <option value="1">ยืม</option>
-                                    <option value="2">ว่าง</option>
+                                    <option value="2" selected>ว่าง</option>
                                     <option value="3">ชำรุด</option>
                                     <option value="4">ซ่อมแซม</option>
                                     <option value="5">งดยืม</option>
@@ -244,16 +285,53 @@ if (isset($_GET['device'])) {
             </div>
         </div>
 
-        <div class="d-flex justify-content-end gap-4">
-            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#staticBackdrop2">+ เพิ่มอุปกรณ์</button>
-        </div>
         <div class="row">
-            <h1 class="text-center">จำนวนผู้ยืม</h1>
-            <div class="col-sm-12">
+            <?php
+            $sqlBorrow = "
+    SELECT 
+                COUNT(CASE WHEN status != 2 THEN 1 END) AS pending,
+        COUNT(CASE WHEN STR_TO_DATE(eq.return_date, '%Y-%m-%d') < CURDATE() AND status != 2 THEN 1 END) AS overdue,
+        COUNT(CASE WHEN status = 2 THEN 1 END) AS returned 
+    FROM equipmentborrow eq
+";
+            $resultBorrow = $conn->query($sqlBorrow);
+            $borrowData = $resultBorrow->fetch(PDO::FETCH_ASSOC);
 
+            // Query for device count
+            $sqlDevice = "SELECT COUNT(*) AS equipment FROM device";
+            $resultDevice = $conn->query($sqlDevice);
+            $deviceData = $resultDevice->fetch(PDO::FETCH_ASSOC);
+
+            $cards = [
+                ['id' => 'borrowed', 'label' => 'กำลังยืม', 'bg' => 'bg-info', 'count' => $borrowData['pending']],
+                ['id' => 'overdue', 'label' => 'เลยกำหนด', 'bg' => 'bg-danger', 'count' => $borrowData['overdue']],
+                ['id' => 'returned', 'label' => 'คืนแล้ว', 'bg' => 'bg-success', 'count' => $borrowData['returned']],
+                ['id' => 'equipment', 'label' => 'อุปกรณ์', 'bg' => 'bg-secondary', 'count' => $deviceData['equipment']],
+            ];
+            ?>
+
+            <div class="d-flex justify-content-center flex-wrap gap-5 mb-3">
+                <?php foreach ($cards as $card): ?>
+                    <div class="rounded-3 px-3 pb-2 text-white <?= $card['bg'] ?> card-hover"
+                        style="width: 12rem;"
+                        onclick="showSection('<?= $card['id'] ?>')">
+                        <div class="card-header">
+                            <div class="d-flex align-items-end">
+                                <p style="font-size: 45px; margin: 0px;"><?= $card['count'] ?></p>
+                                <p class="ms-2" style="font-size: 32px; margin: 0px; margin-bottom:.4rem;">รายการ</p>
+                            </div>
+                            <p style="font-size: 20px; margin: 0px;"><?= $card['label'] ?></p>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+
+            <div class="col-sm-12 section active" id="borrowed-section">
+                <h1 class="text-center">จำนวนผู้ยืม</h1>
                 <table id="borrow" class="table table-hover table-primary mt-5">
                     <thead>
                         <tr>
+                            <th class="text-center" scope="col">ID</th>
                             <th class="text-center" scope="col">ชื่อ</th>
                             <th class="text-center" scope="col">หน่วยงาน</th>
                             <th class="text-center" scope="col">อุปกรณ์ที่ยืม</th>
@@ -347,6 +425,7 @@ if (isset($_GET['device'])) {
                             }
                         ?>
                             <tr>
+                                <td><?= $d['id_borrow'] ?></td>
                                 <td scope="row"><?= $d['borrower_name'] ?></td>
                                 <td><?= $d['department_id'] ?></td>
                                 <td><?= nl2br($device_names_str) ?></td>
@@ -391,13 +470,12 @@ if (isset($_GET['device'])) {
                     </tbody>
                 </table>
             </div>
-            <hr>
-            <h1 class="text-center">ครบกำหนดแล้ว แต่ยังไม่คืน</h1>
-
-            <div class="col-sm-12">
-                <table id="borrow2" class="table table-hover table-primary mt-5">
+            <div class="col-sm-12 section" id="overdue-section">
+                <h1 class="text-center">เลยกำหนด</h1>
+                <table id="borrow2" class="table table-hover table-primary">
                     <thead>
                         <tr>
+                            <th class="text-center" scope="col">ID</th>
                             <th class="text-center" scope="col">ชื่อ</th>
                             <th class="text-center" scope="col">หน่วยงาน</th>
                             <th class="text-center" scope="col">อุปกรณ์ที่ยืม</th>
@@ -411,6 +489,7 @@ if (isset($_GET['device'])) {
                     <tbody class="text-center align-middle">
                         <?php
                         $currentDate = date('Y-m-d');
+
                         $sql = "SELECT eq.*,dv.*
                         FROM equipmentborrow AS eq
                         INNER JOIN device as dv ON dv.id = eq.device_id
@@ -421,8 +500,14 @@ if (isset($_GET['device'])) {
                         $stmt->execute();
                         $user = $stmt->fetchAll();
                         foreach ($user as $d) {
-                            $status = '';
-                            $statusColor = '';
+                            $deviceListStmt = $conn->prepare("SELECT id, device_name FROM device");
+                            $deviceListStmt->execute();
+                            $allDevices = $deviceListStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+                            $device_ids = explode(',', $d['device_id']);
+                            $device_names = array_map(function ($id) use ($allDevices) {
+                                return "$id " . ($allDevices[trim($id)] ?? "Unknown");
+                            }, $device_ids);
+                            $device_names_str = implode("\n", $device_names);
                             if ($d['status'] == 1) {
                                 $status = "อนุมัติแล้ว";
                                 $statusColor = 'background-color: #ffc107;';
@@ -435,9 +520,10 @@ if (isset($_GET['device'])) {
                             }
                         ?>
                             <tr>
+                                <td><?= $d['id_borrow'] ?></td>
                                 <td scope="row"><?= $d['borrower_name'] ?></td>
                                 <td><?= $d['department_id'] ?></td>
-                                <td><?= $d['device_name'] ?></td>
+                                <td><?= nl2br($device_names_str) ?></td>
                                 <td><?= formatThaiDate($d['borrowing_date']) . ' - ' . formatThaiDate($d['return_date']) ?></td>
                                 <td><?= calculateBorrowDays($d['borrowing_date'], $d['return_date']) ?></td>
                                 <td>
@@ -461,14 +547,85 @@ if (isset($_GET['device'])) {
                 </table>
             </div>
 
-        </div>
+            <div class="col-sm-12 section" id="returned-section">
+                <h1 class="text-center">คืนแล้ว</h1>
+                <table id="return" class="table table-hover table-primary">
+                    <thead>
+                        <tr>
+                            <th class="text-center" scope="col">ID</th>
+                            <th class="text-center" scope="col">ชื่อ</th>
+                            <th class="text-center" scope="col">หน่วยงาน</th>
+                            <th class="text-center" scope="col">อุปกรณ์ที่ยืม</th>
+                            <th class="text-center" scope="col">วันที่ยืม - วันส่งคืน</th>
+                            <th class="text-center" scope="col">จำนวนวันยืม</th>
+                            <th class="text-center" scope="col">เวลาที่คืน</th>
+                            <th class="text-center" scope="col">สถานะ</th>
+                            <th class="text-center" scope="col">ตรวจสอบ</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center align-middle">
+                        <?php
+                        $currentDate = date('Y-m-d');
+                        $sql = "SELECT eq.*,dv.*
+                        FROM equipmentborrow AS eq
+                        INNER JOIN device as dv ON dv.id = eq.device_id
+                        WHERE eq.status = 2
+                        ORDER BY eq.status DESC";
 
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute();
+                        $user = $stmt->fetchAll();
+                        foreach ($user as $d) {
+                            $status = '';
+                            $statusColor = '';
 
-        <hr>
-        <div class="row mb-5">
-            <div class="col-sm-12 mt-5">
+                            if (empty($d['return_time']) || $d['return_time'] === '00:00:00.000000') {
+                                $returnTimeFormatted = '-';
+                            } else {
+                                $returnTimeFormatted = date('H:i', strtotime($d['return_time'])) . ' น.';
+                            }
+
+                            if ($d['status'] == 1) {
+                                $status = "อนุมัติแล้ว";
+                                $statusColor = 'background-color: #ffc107;';
+                            } else if ($d['status'] == 2) {
+                                $status = "คืนแล้ว";
+                                $statusColor = 'background-color: green;';
+                            } else {
+                                $status = "ยังไม่อนุมัติ";
+                                $statusColor = 'background-color: red;';
+                            }
+                        ?>
+                            <tr>
+                                <td><?= $d['id_borrow'] ?></td>
+                                <td scope="row"><?= $d['borrower_name'] ?></td>
+                                <td><?= $d['department_id'] ?></td>
+                                <td><?= $d['device_name'] ?></td>
+                                <td><?= formatThaiDate($d['borrowing_date']) . ' - ' . formatThaiDate($d['return_date']) ?></td>
+                                <td><?= calculateBorrowDays($d['borrowing_date'], $d['return_date']) ?></td>
+
+                                <td><?= $returnTimeFormatted  ?></td>
+                                <td>
+                                    <div style="<?= $statusColor ?> text-align: center; color: white; padding: 0px; border-radius: 5px;">
+                                        <?= $status ?><br>( <?= $d['username'] ?> )
+                                    </div>
+                                </td>
+                                <td>
+                                    <a class="btn btn-warning" href="details.php?id=<?= $d['id_borrow'] ?>">ตรวจสอบ</a>
+                                </td>
+                            </tr>
+                        <?php }
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="col-sm-12 section" id="equipment-section">
                 <h1 class="text-center">อุปกรณ์</h1>
-                <table id="device" class="table table-hover table-primary mt-5">
+                <div class="d-flex justify-content-end gap-4">
+                    <button class="btn btn-warning mb-3" data-bs-toggle="modal" data-bs-target="#staticBackdrop2" style="margin-top: -45px;">+ เพิ่มอุปกรณ์</button>
+                </div>
+                <table id="device" class="table table-hover table-primary">
                     <thead>
                         <tr>
                             <th class="text-center" scope="col">อุปกรณ์</th>
@@ -576,7 +733,7 @@ if (isset($_GET['device'])) {
                                     </div>
                                 </div>
 
-                                <td><a onclick="confirm('ต้องการลบข้อมูลใช่หรือไม่')" class="btn btn-danger" href="?device=<?= $d['id'] ?>">ลบ</a></td>
+                                <td> <button onclick="confirmDelete(<?= $d['id'] ?>)" class="btn btn-danger">ลบ</button></td>
                             </tr>
                         <?php }
                         ?>
@@ -590,17 +747,70 @@ if (isset($_GET['device'])) {
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        function showSection(sectionName) {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            const target = document.getElementById(`${sectionName}-section`);
+            if (target) {
+                target.classList.add('active');
+            }
+        }
+    </script>
+    <script>
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'ยืนยันการลบ?',
+                text: "คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลนี้",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ใช่',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirect to delete URL
+                    window.location.href = '?device=' + id;
+                }
+            });
+        }
+    </script>
+    <script>
         $(document).ready(function() {
-            $('#borrow').DataTable();
-            $('#borrow2').DataTable();
+            $('#borrow').DataTable({
+                "order": [
+                    [0, 'desc']
+                ]
+            });
+            $('#borrow2').DataTable({
+                "order": [
+                    [0, 'desc']
+                ]
+            });
+            $('#return').DataTable({
+                "pageLength": 5,
+                "lengthMenu": [5, 10, 25, 50, 100],
+                "order": [
+                    [0, 'desc']
+                ]
+            });
+
+            // $('#return').DataTable({
+            //     "pageLength": 5,
+            //     "lengthMenu": [5, 10, 25, 50, 100],
+            //     "order": [
+            //         [0, 'desc']
+            //     ]
+            // });
             $('#depart').DataTable();
             $('#admin').DataTable();
             $('#device').DataTable();
         });
     </script>
-    f
+
 
     <script src="bootstrap/bootstrap/js/bootstrap.bundle.min.js"></script>
 
