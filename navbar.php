@@ -66,6 +66,10 @@ function navbar()
             </button>
             <div class="collapse navbar-collapse align-items-center" id="navbarSupportedContent">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../orderit/noteList.php">📝โน้ต</a>
+                    </li>
+
                     <div class="dropdown">
                         <button class="btn dropdown-toggle" type="button" id="dropdownMenu1" data-bs-toggle="dropdown" aria-expanded="false" style="color: #fff; margin-top: 1px">
                             Dashboard
@@ -105,7 +109,7 @@ function navbar()
 
                     <div class="dropdown">
                         <button class="btn dropdown-toggle" type="button" id="dropdownMenu2" data-bs-toggle="dropdown" aria-expanded="false" style="color: #fff; margin-top: 1px">
-                        ยืมคืนอุปกรณ์
+                            ยืมคืนอุปกรณ์
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
                             <li><a class="dropdown-item" href="../repair/borrow.php">ยืม</a></li>
